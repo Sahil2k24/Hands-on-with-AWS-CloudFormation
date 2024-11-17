@@ -1,0 +1,55 @@
+Parameters: 
+  Nameoftheservice:
+    Type: String
+    Description: This is the parameter service provided by CloudFormation
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+    Description: Enter the values from the given dropdown 
+  Keypair:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Seelect the Keypair from the downdown
+Mappings: 
+  AmiRegionMap:
+    us-east-1:
+      AMI: ami-04b70fa74e45c3917
+    us-east-2:
+      AMI: ami-09040d770ffe2224f
+
+Resources: 
+  MyInstance:
+    Type: AWS::EC2::Instance 
+    Properties:
+      InstanceType: !Ref InstanceTypeParameter
+      KeyName: !Ref Keypair
+      ImageId: !FindInMap
+        - AmiRegionMap
+        - !Ref AWS::Region
+        - AMI
+      Tags:
+        - Key: "Name"
+          Value: !Ref Nameoftheservice
+      SecurityGroups:
+        - !Ref StackSG
+
+  StackSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http & ssh from MyIP
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: "Name"
+          Value: "Stack-SG"
